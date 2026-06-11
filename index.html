@@ -3,166 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Manga Trace Utility</title>
+    <title>Manga Trace Utility Pro</title>
     
-    <!-- PWA & Mobile Standalone System Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MangaTrace">
-    <meta name="mobile-web-app-capable" content="yes">
     
-    <!-- Embedded SVG App Icon (No external image files required) -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' width='192' height='192'><rect width='100' height='100' rx='22' fill='%23222222'/><path d='M30 25 L45 25 L35 75 L20 75 Z' fill='%23007bff'/><path d='M55 25 L80 25 L70 75 L45 75 Z' fill='%2328a745' opacity='0.8'/><circle cx='50' cy='50' r='8' fill='%23ffffff'/></svg>">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23222222'/><path d='M30 25 L45 25 L35 75 L20 75 Z' fill='%23007bff'/><path d='M55 25 L80 25 L70 75 L45 75 Z' fill='%2328a745' opacity='0.8'/><circle cx='50' cy='50' r='8' fill='%23ffffff'/></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' width='192' height='192'><rect width='100' height='100' rx='22' fill='%23222222'/><path d='M30 25 L45 25 L35 75 L20 75 Z' fill='%23007bff'/><path d='M55 25 L80 25 L70 75 L45 75 Z' fill='%2334c759' opacity='0.8'/><circle cx='50' cy='50' r='8' fill='%23ffffff'/></svg>">
 
     <style>
-        /* Absolute environment lockdown to completely neutralize mobile system gestures */
         html, body { 
-            margin: 0; 
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: #000000; 
-            color: #ffffff; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            overflow: hidden;
-            position: fixed; 
-            touch-action: none;
-            -webkit-user-select: none;
-            user-select: none;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: #000000; color: #ffffff; 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            overflow: hidden; position: fixed; touch-action: none;
+            -webkit-user-select: none; user-select: none;
         }
         
         #controls { 
-            padding: 15px; 
-            padding-top: max(15px, env(safe-area-inset-top)); /* Handles notched phone screens */
-            background: #1a1a1a; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px;
-            box-sizing: border-box;
-            height: auto;
-            border-bottom: 1px solid #2d2d2d;
+            padding: 12px; 
+            padding-top: max(12px, env(safe-area-inset-top));
+            background: #1c1c1e; 
+            display: flex; flex-direction: column; gap: 10px;
+            box-sizing: border-box; border-bottom: 1px solid #2c2c2e;
         }
         
-        .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .group { display: flex; gap: 6px; align-items: center; }
         
-        .upload-label {
-            background: #3a3a3c;
-            color: #ffffff;
-            padding: 12px 18px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid #48484a;
-            box-sizing: border-box;
+        .upload-label, .qol-btn {
+            background: #2c2c2e; color: #ffffff; border: 1px solid #3a3a3c;
+            padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box;
         }
-        .upload-label:active { background: #2c2c2e; }
+        .upload-label:active, .qol-btn:active { background: #3a3a3c; }
+        .qol-btn.active { background: #007aff; border-color: #007aff; }
 
-        button { 
-            background: #007aff; 
-            color: #ffffff; 
-            border: none; 
-            padding: 12px 18px; 
-            border-radius: 8px; 
-            font-size: 14px; 
-            font-weight: 600;
-            box-sizing: border-box;
-        }
-        button:active { background: #0056b3; }
+        #lockBtn { background: #34c759; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: bold; }
+        #toggleMode { background: #007aff; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; }
         
-        #workspace { 
-            position: relative; 
-            width: 100vw; 
-            flex-grow: 1;
-            background: #000000;
-        }
+        #workspace { position: relative; width: 100vw; flex-grow: 1; background: #050505; }
+        .app-container { display: flex; flex-direction: column; width: 100%; height: 100%; }
         
-        /* Layout flex calculation to preserve maximum utility canvas height */
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100%;
-        }
+        video, canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; touch-action: none; }
         
-        video, canvas { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; 
-            touch-action: none;
-        }
-        
-        #lockOverlay { 
-            display: none; 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: rgba(0,0,0,0.01); 
-            z-index: 99999; 
-            touch-action: none;
-        }
-        
+        #lockOverlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.01); z-index: 99999; touch-action: none; }
         #unlockBtn { 
-            display: none; 
-            position: absolute; 
-            top: max(20px, env(safe-area-inset-top)); 
-            left: 50%; 
-            transform: translateX(-50%); 
-            z-index: 100000; 
-            padding: 12px 28px; 
-            background: rgba(255, 59, 48, 0.95); 
-            border: 1px solid #ff453a;
-            border-radius: 25px;
-            font-size: 13px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            display: none; position: absolute; top: max(20px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); 
+            z-index: 100000; padding: 12px 28px; background: rgba(255, 59, 48, 0.95); border: 1px solid #ff453a;
+            border-radius: 25px; font-size: 13px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.6);
         }
 
-        .slider-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-grow: 1;
-            font-size: 14px;
-            font-weight: 500;
-            color: #eaeaea;
-        }
-
-        input[type="range"] {
-            flex-grow: 1;
-            accent-color: #007aff;
-            height: 6px;
-            border-radius: 3px;
-        }
+        .slider-box { display: flex; align-items: center; gap: 8px; flex-grow: 1; font-size: 12px; color: #aeaeb2; min-width: 130px; }
+        input[type="range"] { flex-grow: 1; accent-color: #007aff; height: 4px; border-radius: 2px; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <div id="controls">
+            <!-- Row 1: File Loading & Cam -->
             <div class="row">
-                <input type="file" id="upload" accept="image/*" style="display: none;">
-                <label for="upload" class="upload-label">
-                    <span>📂</span> Upload Panel
-                </label>
-                <button id="toggleMode">Use Camera</button>
+                <div class="group">
+                    <input type="file" id="upload" accept="image/*" style="display: none;">
+                    <label for="upload" class="upload-label">📂 Load</label>
+                    <button type="button" id="toggleMode">Camera</button>
+                </div>
+                <div class="group">
+                    <button type="button" id="btnInvert" class="qol-btn">🌓 Invert</button>
+                    <button type="button" id="btnMirror" class="qol-btn">↔️ Mirror</button>
+                    <button type="button" id="btnReset" class="qol-btn">🔄 Reset</button>
+                </div>
             </div>
+            
+            <!-- Row 2: Sliders & Lock -->
             <div class="row">
-                <div class="slider-container">
-                    <span>Opacity</span>
+                <div class="slider-box">
+                    <span>Opa:</span>
                     <input type="range" id="opacity" min="0.1" max="1" step="0.05" value="0.5">
                 </div>
-                <button id="lockBtn" style="background: #34c759; min-width: 130px;">FREEZE SCREEN</button>
+                <div class="slider-box">
+                    <span>Zoom:</span>
+                    <input type="range" id="zoom" min="1" max="5" step="0.1" value="1">
+                </div>
+                <button type="button" id="lockBtn">FREEZE</button>
             </div>
         </div>
 
@@ -173,7 +97,7 @@
         </div>
     </div>
     
-    <button id="unlockBtn">HOLD 2s TO UNLOCK</button>
+    <button type="button" id="unlockBtn">HOLD 2s TO UNLOCK</button>
 
     <script>
         const upload = document.getElementById('upload');
@@ -182,17 +106,34 @@
         const video = document.getElementById('webcam');
         const toggleMode = document.getElementById('toggleMode');
         const opacitySlider = document.getElementById('opacity');
+        const zoomSlider = document.getElementById('zoom');
         const lockBtn = document.getElementById('lockBtn');
         const lockOverlay = document.getElementById('lockOverlay');
         const unlockBtn = document.getElementById('unlockBtn');
         const controls = document.getElementById('controls');
+        
+        // QoL Element Triggers
+        const btnInvert = document.getElementById('btnInvert');
+        const btnMirror = document.getElementById('btnMirror');
+        const btnReset = document.getElementById('btnReset');
 
         let img = new Image();
         let mode = 'lightbox';
         let stream = null;
         let isLocked = false;
 
-        // Functional event execution blocker for full lock stability
+        // Visual Engine States
+        let scale = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isInverted = false;
+        let isMirrored = false;
+
+        // Drag/Pan Tracking States
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+
         function killGesture(e) {
             if (isLocked) {
                 if (e.cancelable) e.preventDefault();
@@ -200,11 +141,27 @@
             }
         }
 
-        // Apply strict application level listeners
         window.addEventListener('touchstart', killGesture, { passive: false });
         window.addEventListener('touchmove', killGesture, { passive: false });
         window.addEventListener('touchend', killGesture, { passive: false });
         window.addEventListener('gesturestart', killGesture, { passive: false });
+
+        // Direct Touch Dragging Interface (Only works when screen is NOT frozen)
+        canvas.addEventListener('touchstart', (e) => {
+            if (isLocked || !img.src || e.touches.length > 1) return;
+            isDragging = true;
+            startX = e.touches[0].clientX - offsetX;
+            startY = e.touches[0].clientY - offsetY;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDragging || isLocked || e.touches.length > 1) return;
+            offsetX = e.touches[0].clientX - startX;
+            offsetY = e.touches[0].clientY - startY;
+            draw();
+        });
+
+        window.addEventListener('touchend', () => { isDragging = false; });
 
         function resize() {
             canvas.width = canvas.clientWidth;
@@ -212,7 +169,6 @@
             draw();
         }
         window.addEventListener('resize', resize);
-        // Step layout buffers to accommodate instant CSS rendering engines
         setTimeout(resize, 50);
         setTimeout(resize, 250);
 
@@ -222,6 +178,7 @@
                 const reader = new FileReader();
                 reader.onload = (event) => { 
                     img.src = event.target.result; 
+                    resetTransformations();
                 };
                 reader.readAsDataURL(file);
             }
@@ -229,19 +186,70 @@
 
         img.onload = draw;
         opacitySlider.addEventListener('input', draw);
+        zoomSlider.addEventListener('input', (e) => {
+            scale = parseFloat(e.target.value);
+            draw();
+        });
+
+        // QoL Interactive State Additions
+        btnInvert.addEventListener('click', () => {
+            isInverted = !isInverted;
+            btnInvert.classList.toggle('active', isInverted);
+            draw();
+        });
+
+        btnMirror.addEventListener('click', () => {
+            isMirrored = !isMirrored;
+            btnMirror.classList.toggle('active', isMirrored);
+            draw();
+        });
+
+        btnReset.addEventListener('click', resetTransformations);
+
+        function resetTransformations() {
+            scale = 1;
+            offsetX = 0;
+            offsetY = 0;
+            isInverted = false;
+            isMirrored = false;
+            zoomSlider.value = 1;
+            btnInvert.classList.remove('active');
+            btnMirror.classList.remove('active');
+            draw();
+        }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (!img.src) {
                 ctx.fillStyle = "#8e8e93";
-                ctx.font = "16px -apple-system, sans-serif";
+                ctx.font = "15px -apple-system, sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText("Tap 'Upload Panel' to load a sketch", canvas.width / 2, canvas.height / 2);
+                ctx.fillText("Tap 'Load' to select a manga panel", canvas.width / 2, canvas.height / 2);
                 return;
+            }
+
+            ctx.save();
+            
+            // Apply Filters (Inversion)
+            if (isInverted) {
+                ctx.filter = "invert(100%)";
+            } else {
+                ctx.filter = "none";
+            }
+
+            // Move coordinates to current user drag positions
+            ctx.translate(canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
+            
+            // Handle horizontal mirroring calculations
+            if (isMirrored) {
+                ctx.scale(-scale, scale);
+            } else {
+                ctx.scale(scale, scale);
             }
 
             ctx.globalAlpha = parseFloat(opacitySlider.value);
             
+            // Draw image scaled around center point
             const wrh = img.width / img.height;
             let newWidth = canvas.width;
             let newHeight = newWidth / wrh;
@@ -249,10 +257,9 @@
                 newHeight = canvas.height;
                 newWidth = newHeight * wrh;
             }
-            const x = (canvas.width - newWidth) / 2;
-            const y = (canvas.height - newHeight) / 2;
             
-            ctx.drawImage(img, x, y, newWidth, newHeight);
+            ctx.drawImage(img, -newWidth / 2, -newHeight / 2, newWidth, newHeight);
+            ctx.restore();
         }
 
         toggleMode.addEventListener('click', async () => {
@@ -265,26 +272,22 @@
                     video.style.display = 'block';
                     mode = 'camera';
                     toggleMode.style.background = '#545456';
-                    toggleMode.innerText = "Use Light Box";
+                    toggleMode.innerText = "LightBox";
                 } catch (err) {
-                    alert("Camera framework access was denied.");
+                    alert("Camera framework blocked.");
                 }
             } else {
                 if (stream) stream.getTracks().forEach(track => track.stop());
                 video.style.display = 'none';
                 mode = 'lightbox';
                 toggleMode.style.background = '#007aff';
-                toggleMode.innerText = "Use Camera";
+                toggleMode.innerText = "Camera";
             }
             draw();
         });
 
-        // Activate Lock State Routine
         lockBtn.addEventListener('click', () => {
-            if (!img.src) {
-                alert("Please upload a sketch before freezing the workspace.");
-                return;
-            }
+            if (!img.src) return;
             isLocked = true;
             lockOverlay.style.display = 'block';
             unlockBtn.style.display = 'block';
@@ -292,19 +295,15 @@
             resize();
         });
 
-        // Safe Unlock long press timer engine
         let unlockTimeout;
-        
         unlockBtn.addEventListener('touchstart', (e) => {
             e.stopPropagation(); 
-            unlockBtn.style.background = "rgba(255, 59, 48, 1)";
             unlockBtn.innerText = "HOLDING...";
             unlockTimeout = setTimeout(() => {
                 isLocked = false;
                 lockOverlay.style.display = 'none';
                 unlockBtn.style.display = 'none';
                 unlockBtn.innerText = "HOLD 2s TO UNLOCK";
-                unlockBtn.style.background = "rgba(255, 59, 48, 0.95)";
                 controls.style.display = 'flex';
                 resize();
             }, 2000); 
@@ -314,9 +313,9 @@
             clearTimeout(unlockTimeout);
             if (isLocked) {
                 unlockBtn.innerText = "HOLD 2s TO UNLOCK";
-                unlockBtn.style.background = "rgba(255, 59, 48, 0.95)";
             }
         });
     </script>
 </body>
 </html>
+
